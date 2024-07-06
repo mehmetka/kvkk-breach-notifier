@@ -2,7 +2,7 @@
 
 $leaks = scrapeWebsite();
 $leakCount = count($leaks);
-$today = localize_date(date('d F Y'));
+$today = localize_date(date('d M Y'));
 
 $botToken = 'your-bot-token';
 $channel = 'your-channel-id';
@@ -17,7 +17,7 @@ if ($leakCount) {
 
 function scrapeWebsite()
 {
-    $today = localize_date(date('d F Y'));
+    $today = localize_date(date('d M Y'));
     $url = 'https://www.kvkk.gov.tr/veri-ihlali-bildirimi/';
 
     $curl = curl_init($url);
