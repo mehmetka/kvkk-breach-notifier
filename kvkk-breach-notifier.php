@@ -1,23 +1,26 @@
 <?php
 
+$latestFlag = file_get_contents('latest-link.txt');
 $leaks = scrapeWebsite();
-$leakCount = count($leaks);
-$today = localize_date(date('d M Y'));
+$currentFlag = file_get_contents('latest-link.txt');
+$today = date('d M Y');
 
 $botToken = 'your-bot-token';
 $channel = 'your-channel-id';
 
-if ($leakCount) {
-    $message = ":bangbang: Yeni veri ihlali var ($today)\n";
-    foreach ($leaks as $leak) {
-        $message .= "• <https://www.kvkk.gov.tr{$leak['link']}|{$leak['title']}>\n";
-    }
-    chatPostMessage($channel, $message, $botToken);
+if ($latestFlag === $currentFlag) {
+    exit;
 }
+
+$message = ":bangbang: Yeni veri ihlali var ($today)\n";
+foreach ($leaks as $leak) {
+    $message .= "• <https://www.kvkk.gov.tr{$leak['link']}|{$leak['title']}>\n";
+}
+chatPostMessage($channel, $message, $botToken);
 
 function scrapeWebsite()
 {
-    $today = localize_date(date('d M Y'));
+    $latestLink = '';
     $url = 'https://www.kvkk.gov.tr/veri-ihlali-bildirimi/';
 
     $curl = curl_init($url);
@@ -51,10 +54,6 @@ function scrapeWebsite()
             $tmpDate = trim($date->textContent);
         }
 
-        if ($today !== $tmpDate) {
-            continue;
-        }
-
         foreach ($links as $link) {
             $tmpLink = trim($link->getAttribute('href'));
         }
@@ -63,6 +62,7 @@ function scrapeWebsite()
             $tmpTitle = trim($title->textContent);
         }
 
+        file_put_contents('latest-link.txt', $tmpLink);
         $result[] = ['date' => $tmpDate, 'link' => $tmpLink, 'title' => $tmpTitle];
 
     }
@@ -75,10 +75,6 @@ function scrapeWebsite()
 
         foreach ($dates as $date) {
             $tmpDate = trim($date->textContent);
-        }
-
-        if ($today !== $tmpDate) {
-            continue;
         }
 
         foreach ($links as $link) {
@@ -121,38 +117,4 @@ function chatPostMessage($channel, $message, $botToken)
     }
 
     curl_close($ch);
-}
-
-// https://gist.github.com/CanNuhlar/75a9f9642c547fb2d5c7b3e012da2388
-function localize_date($date)
-{
-
-    $days = array("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun");
-    $months = array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
-
-    $daysLocal = array("Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar");
-    $monthsLocal = array(
-        "Ocak",
-        "Şubat",
-        "Mart",
-        "Nisan",
-        "Mayıs",
-        "Haziran",
-        "Temmuz",
-        "Ağustos",
-        "Eylül",
-        "Ekim",
-        "Kasım",
-        "Aralık"
-    );
-
-    foreach ($days as $key => $day) {
-        $date = str_replace($day, $daysLocal[$key], $date);
-    }
-
-    foreach ($months as $key => $month) {
-        $date = str_replace($month, $monthsLocal[$key], $date);
-    }
-
-    return $date;
 }
