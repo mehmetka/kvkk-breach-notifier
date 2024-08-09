@@ -14,13 +14,17 @@ if ($latestFlag === $currentFlag) {
 
 $message = ":bangbang: Yeni veri ihlali var ($today)\n";
 foreach ($leaks as $leak) {
-    $message .= "• <https://www.kvkk.gov.tr{$leak['link']}|{$leak['title']}>\n";
+    $title = urlencode($leak['title']);
+    $message .= "• <https://www.kvkk.gov.tr{$leak['link']}|$title>\n";
+
+    if ($leak['link'] === $latestFlag) {
+        break;
+    }
 }
 chatPostMessage($channel, $message, $botToken);
 
 function scrapeWebsite()
 {
-    $latestLink = '';
     $url = 'https://www.kvkk.gov.tr/veri-ihlali-bildirimi/';
 
     $curl = curl_init($url);
